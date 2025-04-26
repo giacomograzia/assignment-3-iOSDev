@@ -1,0 +1,4 @@
+# Ignore all files in the '2' subfolder of 'countriesDataset'
+countriesDataset/2/*
+
+.DS_Store
