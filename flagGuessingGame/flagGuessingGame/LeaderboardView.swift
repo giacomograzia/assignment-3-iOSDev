@@ -42,6 +42,7 @@ struct LeaderboardView: View {
                         .foregroundColor(Color("customGreen"))
                 }
                 .padding(.bottom, 20)
+                .padding()
                 
                 //current player data
                 VStack(spacing: 8) {
