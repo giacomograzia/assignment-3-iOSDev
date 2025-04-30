@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		3C8DEF7C2DC07E4500948B0A /* flagGuessingGame.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = flagGuessingGame.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D8C428372DC1CD18004AD3FB /* flagGuessingGame.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = flagGuessingGame.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -33,7 +33,7 @@
 			isa = PBXGroup;
 			children = (
 				3CA8FE652DB73CC100A997BA /* flagGuessingGame */,
-				3C8DEF7C2DC07E4500948B0A /* flagGuessingGame.app */,
+				D8C428372DC1CD18004AD3FB /* flagGuessingGame.app */,
 			);
 			sourceTree = "<group>";
 		};
@@ -59,7 +59,7 @@
 			packageProductDependencies = (
 			);
 			productName = flagGuessingGame;
-			productReference = 3C8DEF7C2DC07E4500948B0A /* flagGuessingGame.app */;
+			productReference = D8C428372DC1CD18004AD3FB /* flagGuessingGame.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */

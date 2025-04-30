@@ -26,6 +26,7 @@ struct GameView: View {
 
     @State private var isOptionDisabled = false
     @State private var isGameOver = false
+    @State private var showGameOverOverlay = false
 
     init(difficulty: String, playerName: String, startingLives: Int) {
         self.difficulty = difficulty
@@ -95,7 +96,6 @@ struct GameView: View {
                 .ignoresSafeArea(edges: .top)
                 .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
                 
-                
                 // Flag section
                 if let correctCountry = correctCountry {
                     VStack(spacing: 5) {
@@ -104,7 +104,6 @@ struct GameView: View {
                             .shadow(radius: 10)
                         
                         ZStack {
-                            // Actual name – only shown after selection
                             if showCountryName {
                                 Text(selectedCountryName)
                                     .font(.title2)
@@ -114,7 +113,7 @@ struct GameView: View {
                                     .lineLimit(2)
                                     .minimumScaleFactor(0.6)
                                     .frame(maxWidth: 250)
-                                    .fixedSize(horizontal: false, vertical: true) // allows wrapping but fixes box size
+                                    .fixedSize(horizontal: false, vertical: true)
                                     .transition(.opacity)
                                     .padding(.horizontal, 10)
                             } else {
@@ -131,10 +130,8 @@ struct GameView: View {
                                     .transition(.opacity)
                                     .padding(.horizontal, 10)
                             }
-
                         }
                         .animation(.easeInOut(duration: 0.3), value: showCountryName)
-
                         
                         Text("\(correctCountry.normalizedScore) points")
                             .font(.subheadline)
@@ -189,12 +186,31 @@ struct GameView: View {
                 
                 Spacer()
             }
-            .fullScreenCover(isPresented: $isGameOver, onDismiss: {
-                // You stay in GameView after leaderboard closes
-            }) {
-                LeaderboardView(playerName: playerName, score: currentScore)
+
+            // MARK: - Game Over Overlay
+            if showGameOverOverlay {
+                ZStack {
+                    Color.black.opacity(0.7)
+                        .ignoresSafeArea()
+                    
+                    VStack(spacing: 20) {
+                        Text("Game Over")
+                            .font(.system(size: 48, weight: .bold))
+                            .foregroundColor(.white)
+                            .shadow(radius: 10)
+                        
+                        Text("Final Score: \(currentScore)")
+                            .font(.title2)
+                            .foregroundColor(.white.opacity(0.9))
+                    }
+                }
+                .zIndex(999)
+                .transition(.opacity)
             }
 
+        }
+        .fullScreenCover(isPresented: $isGameOver) {
+            LeaderboardView(playerName: playerName, score: currentScore)
         }
         .navigationBarBackButtonHidden(true)
         .onAppear {
@@ -240,7 +256,13 @@ struct GameView: View {
 
         if livesRemaining <= 0 {
             saveScoreToLeaderboard()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            withAnimation {
+                showGameOverOverlay = true
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                withAnimation {
+                    showGameOverOverlay = false
+                }
                 isGameOver = true
             }
         } else {
@@ -251,14 +273,14 @@ struct GameView: View {
         }
     }
 
-
     private func saveScoreToLeaderboard() {
         print("Saving score: \(currentScore) for player \(playerName)")
-        // You can save to UserDefaults or local file later
+        // Save logic can be implemented here
     }
 }
 
 #Preview {
     GameView(difficulty: "3", playerName: "Diva", startingLives: 3)
 }
+
 
