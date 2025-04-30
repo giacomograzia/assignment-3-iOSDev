@@ -29,7 +29,6 @@ struct SettingsView: View {
     }
     
     var body: some View {
-        NavigationView {
             ZStack {
                 // Background
                 Image("Background")
@@ -98,7 +97,7 @@ struct SettingsView: View {
                     }
 
                     Spacer()
-                    Spacer()
+    
 
                     // Start Game Button
                     NavigationLink(destination: GameView(
@@ -126,10 +125,12 @@ struct SettingsView: View {
                     }
                     .padding(.horizontal, 45)
                     .disabled(playerName.isEmpty) // optional: disable until name is entered
+                    .navigationBarHidden(true)
+                    .navigationBarBackButtonHidden(true)
                 }
             }
-            .navigationBarHidden(true)
-        }
+            .navigationBarBackButtonHidden(true)
+        
     }
     
     @ViewBuilder

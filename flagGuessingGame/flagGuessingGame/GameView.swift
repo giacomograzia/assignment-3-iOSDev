@@ -209,10 +209,11 @@ struct GameView: View {
             }
 
         }
+        .navigationBarBackButtonHidden(true)
+        .navigationBarHidden(true)
         .fullScreenCover(isPresented: $isGameOver) {
             LeaderboardView(playerName: playerName, score: currentScore)
         }
-        .navigationBarBackButtonHidden(true)
         .onAppear {
             loadNewRound()
         }
