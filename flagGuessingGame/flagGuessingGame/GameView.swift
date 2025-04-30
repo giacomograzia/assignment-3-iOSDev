@@ -8,24 +8,24 @@
 import SwiftUI
 
 struct GameView: View {
-    // Variables from SettingsView
     let difficulty: String
     let playerName: String
     let startingLives: Int
-
+    
     @State private var countries: [Country] = []
     @State private var correctCountry: Country?
     @State private var options: [Country] = []
 
-    @State private var showFeedback = false
-    @State private var feedbackText = ""
-    @State private var feedbackColor = Color.green
-    @State private var showCountryName = false
     @State private var selectedCountryName = ""
+    @State private var showCountryName = false
+    @State private var feedbackColor = Color.green
 
     @State private var livesRemaining: Int
     @State private var currentScore: Int = 0
     @State private var totalScorePossible: Int = 0
+
+    @State private var isOptionDisabled = false
+    @State private var isGameOver = false
 
     init(difficulty: String, playerName: String, startingLives: Int) {
         self.difficulty = difficulty
@@ -54,53 +54,30 @@ struct GameView: View {
             Color.black.opacity(0.3)
                 .ignoresSafeArea()
 
-            if showFeedback {
-                VStack {
-                    Spacer()
-                    Text(feedbackText)
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                        .padding()
-                        .background(feedbackColor)
-                        .cornerRadius(15)
-                        .shadow(radius: 10)
-                        .padding(.bottom, 10)
-                }
-                .transition(.move(edge: .bottom).combined(with: .opacity))
-                .animation(.easeInOut(duration: 0.3), value: showFeedback)
-            }
-
-
             VStack(spacing: 0) {
-                // HUD at top
+                // HUD
                 VStack {
                     HStack {
-                        // Player name
                         Text(playerName)
                             .font(.subheadline)
                             .fontWeight(.semibold)
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.leading, 20)
-
-                        // Score
+                        
                         VStack(spacing: 4) {
                             Text("Score: \(currentScore)")
                                 .font(.headline)
                                 .fontWeight(.bold)
                                 .foregroundColor(.white)
-
+                            
                             Text("Best: \(totalScorePossible)")
                                 .font(.subheadline)
                                 .fontWeight(.medium)
                                 .foregroundColor(.white.opacity(0.9))
                         }
-                        .multilineTextAlignment(.center)
                         .frame(maxWidth: .infinity)
-
-
-                        // Lives
+                        
                         HStack(spacing: 4) {
                             ForEach(0..<startingLives, id: \.self) { index in
                                 Image(systemName: index < livesRemaining ? "heart.fill" : "heart")
@@ -110,91 +87,114 @@ struct GameView: View {
                         .frame(maxWidth: .infinity, alignment: .trailing)
                         .padding(.trailing, 20)
                     }
-                    .padding(.top, 60) // safe offset under Dynamic Island
+                    .padding(.top, 60)
                     .padding(.bottom, 12)
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal, 70)
                 }
                 .background(.ultraThinMaterial)
-                .padding(.horizontal, 50)
                 .ignoresSafeArea(edges: .top)
                 .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
-
-                Spacer() // pushes rest of content down
-            }
-
-
-
-            VStack(spacing: 30) {
-                Spacer()
-
-                // Flag and score
+                
+                
+                // Flag section
                 if let correctCountry = correctCountry {
-                    Spacer()
-                    Spacer()
-                    VStack(spacing: 12) {
+                    VStack(spacing: 5) {
                         Text(correctCountry.emoji)
                             .font(.system(size: 120))
                             .shadow(radius: 10)
+                        
+                        ZStack {
+                            // Actual name – only shown after selection
+                            if showCountryName {
+                                Text(selectedCountryName)
+                                    .font(.title2)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(feedbackColor)
+                                    .multilineTextAlignment(.center)
+                                    .lineLimit(2)
+                                    .minimumScaleFactor(0.6)
+                                    .frame(maxWidth: 250)
+                                    .fixedSize(horizontal: false, vertical: true) // allows wrapping but fixes box size
+                                    .transition(.opacity)
+                                    .padding(.horizontal, 10)
+                            } else {
+                                Text(String(repeating: "█", count: max(6, correctCountry.countryName.count)))
+                                    .font(.title2)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.white.opacity(0.3))
+                                    .blur(radius: 2)
+                                    .multilineTextAlignment(.center)
+                                    .lineLimit(2)
+                                    .minimumScaleFactor(0.6)
+                                    .frame(maxWidth: 250)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                    .transition(.opacity)
+                                    .padding(.horizontal, 10)
+                            }
 
-                        if showCountryName {
-                            Text(selectedCountryName)
-                                .font(.title2)
-                                .fontWeight(.bold)
-                                .foregroundColor(feedbackColor)
                         }
+                        .animation(.easeInOut(duration: 0.3), value: showCountryName)
 
+                        
                         Text("\(correctCountry.normalizedScore) points")
                             .font(.subheadline)
                             .fontWeight(.semibold)
                             .foregroundColor(.white.opacity(0.8))
-                            .padding(.top, 2)
                     }
                     .padding()
                     .background(.ultraThinMaterial)
                     .clipShape(RoundedRectangle(cornerRadius: 20))
-                    .padding(.horizontal, 10)
+                    .padding(.horizontal, 20)
                 }
-
+                
+                Spacer()
+                Spacer()
+                
                 // Answer buttons
                 VStack(spacing: 20) {
-                    Spacer()
-                    let columns: [GridItem] = Array(repeating: GridItem(.flexible(), spacing: 20), count: 2) // 2 columns layout
-
+                    let columns: [GridItem] = Array(repeating: GridItem(.flexible(), spacing: 20), count: 2)
+                    
                     LazyVGrid(columns: columns, spacing: 20) {
                         ForEach(options, id: \.id) { country in
                             Button(action: {
-                                countryTapped(country)
-                            }) {
-                                VStack {
-                                    Text(country.countryName)
-                                        .font(.title3)
-                                        .fontWeight(.bold)
-                                        .multilineTextAlignment(.center)
-                                        .minimumScaleFactor(0.5)
-                                        .lineLimit(2)
-                                        .frame(maxWidth: .infinity)
-                                        .padding(.horizontal, 5)
+                                if !isOptionDisabled {
+                                    isOptionDisabled = true
+                                    countryTapped(country)
                                 }
-                                .frame(height: 100) // ✅ Fixed tile height
-                                .background(
-                                    LinearGradient(
-                                        gradient: Gradient(colors: [Color("customGreen"), Color("customBlue")]),
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
+                            }) {
+                                Text(country.countryName)
+                                    .font(.title3)
+                                    .fontWeight(.bold)
+                                    .multilineTextAlignment(.center)
+                                    .minimumScaleFactor(0.5)
+                                    .lineLimit(2)
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 100)
+                                    .background(
+                                        LinearGradient(
+                                            gradient: Gradient(colors: [Color("customGreen"), Color("customBlue")]),
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
                                     )
-                                )
-                                .foregroundColor(.white)
-                                .cornerRadius(15)
-                                .shadow(color: .black.opacity(0.25), radius: 5, x: 0, y: 3)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(15)
+                                    .shadow(color: .black.opacity(0.25), radius: 5, x: 0, y: 3)
                             }
+                            .disabled(isOptionDisabled)
                         }
                     }
-                    .padding(.horizontal, 100)
-
+                    .padding(.horizontal, 105)
                 }
-
+                
                 Spacer()
             }
+            .fullScreenCover(isPresented: $isGameOver, onDismiss: {
+                // You stay in GameView after leaderboard closes
+            }) {
+                LeaderboardView(playerName: playerName, score: currentScore)
+            }
+
         }
         .navigationBarBackButtonHidden(true)
         .onAppear {
@@ -202,9 +202,10 @@ struct GameView: View {
         }
     }
 
-    // MARK: - Functions
+    // MARK: - Logic
 
     private func loadNewRound() {
+        isOptionDisabled = false
         countries = CountryDataManager.loadCountries()
 
         guard countries.count >= numberOfOptions else { return }
@@ -224,39 +225,40 @@ struct GameView: View {
     }
 
     private func countryTapped(_ selected: Country) {
-        selectedCountryName = correctCountry?.countryName ?? ""
+        guard let correct = correctCountry else { return }
+
+        selectedCountryName = correct.countryName
         showCountryName = true
 
-        if selected.countryName == correctCountry?.countryName {
-            feedbackText = "Correct"
+        if selected.countryName == correct.countryName {
             feedbackColor = Color("customGreen")
-            currentScore += correctCountry?.normalizedScore ?? 0
+            currentScore += correct.normalizedScore
         } else {
-            feedbackText = "Wrong"
-            feedbackColor = Color.red
+            feedbackColor = .red
             livesRemaining -= 1
         }
 
-        showFeedback = true
-
-        if livesRemaining == 0 {
+        if livesRemaining <= 0 {
             saveScoreToLeaderboard()
-            // TODO: maybe show an end screen later
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                isGameOver = true
+            }
         } else {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                loadNewRound()
-                showFeedback = false
                 showCountryName = false
+                loadNewRound()
             }
         }
     }
 
+
     private func saveScoreToLeaderboard() {
         print("Saving score: \(currentScore) for player \(playerName)")
-        // TODO: Save score to persistent storage
+        // You can save to UserDefaults or local file later
     }
 }
 
 #Preview {
-    GameView(difficulty: "3", playerName: "Test", startingLives: 3)
+    GameView(difficulty: "3", playerName: "Diva", startingLives: 3)
 }
+
