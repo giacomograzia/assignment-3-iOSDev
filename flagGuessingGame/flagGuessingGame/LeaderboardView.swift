@@ -99,7 +99,7 @@ struct LeaderboardView: View {
                 
                 /*
                  * uncomment to clear the player scores for demoing
-                 *
+                 
                  Button(action: clearPlayerScores) {
                  Text("Clear High Scores")
                  .foregroundColor(.red)
@@ -108,6 +108,7 @@ struct LeaderboardView: View {
                  .clipShape(RoundedRectangle(cornerRadius: 10))
                  }
                  */
+                 
                 
                 
                 
@@ -139,19 +140,21 @@ struct LeaderboardView: View {
         }
         .onAppear {
             loadPlayerScores()
-            savePlayerScores()
+            //savePlayerScores() - only want it to load, not save the scores (duplicate)
         }
         .navigationBarHidden(true)
     }
     
     private func loadPlayerScores() {
-        if let data = UserDefaults.standard.data(forKey: "PlayerScores") {
-            let decoder = JSONDecoder()
-            if let decodedPlayerScores = try? decoder.decode([PlayerScore].self, from: data) {
-                playerScores = decodedPlayerScores
-            }
+        guard let data = UserDefaults.standard.data(forKey: "PlayerScores"),
+              let decoded = try? JSONDecoder().decode([PlayerScore].self, from: data)
+        else {
+            playerScores = []
+            return
         }
+        playerScores = decoded
     }
+
     
     private func savePlayerScores() {
         let newPlayerScore = PlayerScore(playerName: playerName, score: score)
@@ -170,9 +173,10 @@ struct LeaderboardView: View {
      playerScores = []
      }
      */
+     
     
 }
 
 #Preview {
-    LeaderboardView(playerName: "Test Player", score: 100)
+    LeaderboardView(playerName: "Diva", score: 20)
 }

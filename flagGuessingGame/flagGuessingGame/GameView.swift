@@ -23,6 +23,7 @@ struct GameView: View {
     @State private var livesRemaining: Int
     @State private var currentScore: Int = 0
     @State private var totalScorePossible: Int = 0
+    @State private var bestScore: Int = 0
 
     @State private var isOptionDisabled = false
     @State private var isGameOver = false
@@ -72,7 +73,7 @@ struct GameView: View {
                                 .fontWeight(.bold)
                                 .foregroundColor(.white)
                             
-                            Text("Best: \(totalScorePossible)")
+                            Text("Best: \(bestScore)") // Show the actual best score
                                 .font(.subheadline)
                                 .fontWeight(.medium)
                                 .foregroundColor(.white.opacity(0.9))
@@ -211,10 +212,11 @@ struct GameView: View {
         }
         .navigationBarBackButtonHidden(true)
         .navigationBarHidden(true)
-        .fullScreenCover(isPresented: $isGameOver) {
+        .fullScreenCover(isPresented: $isGameOver, onDismiss: resetGame) {
             LeaderboardView(playerName: playerName, score: currentScore)
         }
         .onAppear {
+            loadBestScore()  // Load best score from leaderboard on game start
             loadNewRound()
         }
     }
@@ -260,7 +262,7 @@ struct GameView: View {
             withAnimation {
                 showGameOverOverlay = true
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
                 withAnimation {
                     showGameOverOverlay = false
                 }
@@ -275,8 +277,60 @@ struct GameView: View {
     }
 
     private func saveScoreToLeaderboard() {
-        print("Saving score: \(currentScore) for player \(playerName)")
-        // Save logic can be implemented here
+        // Check if current score is higher than the stored best score
+        if currentScore > bestScore {
+            bestScore = currentScore
+            
+            // Load the existing leaderboard scores
+            var savedScores = loadLeaderboard()
+            
+            // Add the new score to the leaderboard
+            savedScores.append(PlayerScore(playerName: playerName, score: currentScore))
+            
+            // Save the updated leaderboard
+            saveLeaderboard(savedScores)
+        }
+    }
+
+
+    
+    func loadLeaderboard() -> [PlayerScore] {
+        guard let data = UserDefaults.standard.data(forKey: "PlayerScores") else {
+            return [] // Return an empty array if no leaderboard exists
+        }
+        
+        let decoder = JSONDecoder()
+        if let scores = try? decoder.decode([PlayerScore].self, from: data) {
+            return scores
+        }
+        return [] // Return an empty array if decoding fails
+    }
+
+    
+    func saveLeaderboard(_ scores: [PlayerScore]) {
+        if let data = try? JSONEncoder().encode(scores) {
+            UserDefaults.standard.set(data, forKey: "PlayerScores")
+        }
+    }
+
+    
+    private func resetGame() {
+        livesRemaining      = startingLives
+        currentScore        = 0
+        totalScorePossible  = 0
+        showCountryName     = false
+        isOptionDisabled    = false
+        showGameOverOverlay = false
+
+        loadNewRound()
+    }
+    
+    private func loadBestScore() {
+        // Load leaderboard scores
+        let scores = loadLeaderboard()
+        
+        // Set the best score from the leaderboard (or 0 if no scores exist)
+        bestScore = scores.map(\.score).max() ?? 0
     }
 }
 
