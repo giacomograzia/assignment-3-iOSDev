@@ -140,7 +140,7 @@ struct LeaderboardView: View {
         }
         .onAppear {
             loadPlayerScores()
-            //savePlayerScores() - only want it to load, not save the scores (duplicate)
+            savePlayerScores() 
         }
         .navigationBarHidden(true)
     }
