@@ -8,6 +8,7 @@ import SwiftUI
 struct LeaderboardView: View {
 
     @Environment(\.dismiss) private var dismiss
+    @State private var navigateToSettings = false
 
     @State private var playerScores: [PlayerScore] = []
 
@@ -15,16 +16,21 @@ struct LeaderboardView: View {
     var score: Int
 
     var body: some View {
-        ZStack {
-            backgroundView
-            Color.black.opacity(0.1).ignoresSafeArea()
-            contentView
+        NavigationStack {
+            ZStack {
+                backgroundView
+                Color.black.opacity(0.1).ignoresSafeArea()
+                contentView
+            }
+            .onAppear {
+                loadPlayerScores()
+                savePlayerScores()
+            }
+            .navigationBarHidden(true)
+            .navigationDestination(isPresented: $navigateToSettings) {
+                SettingsView()
+            }
         }
-        .onAppear {
-            loadPlayerScores()
-            savePlayerScores()
-        }
-        .navigationBarHidden(true)
     }
 
     private var backgroundView: some View {
@@ -121,7 +127,7 @@ struct LeaderboardView: View {
 
     private var playAgainButton: some View {
         Button(action: {
-            dismiss()
+            navigateToSettings = true
         }) {
             ZStack {
                 RoundedRectangle(cornerRadius: 15)
