@@ -5,6 +5,10 @@
 
 import SwiftUI
 
+/*
+ Shows the name and scores of previous players. Allows user to play again.
+ */
+
 struct LeaderboardView: View {
 
     @Environment(\.dismiss) private var dismiss

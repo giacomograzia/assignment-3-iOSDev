@@ -30,7 +30,7 @@ struct SettingsView: View {
     
     var body: some View {
             ZStack {
-                // Background
+                //background
                 Image("Background")
                     .resizable()
                     .scaledToFill()
@@ -42,7 +42,7 @@ struct SettingsView: View {
                 VStack(spacing: 30) {
                     Spacer().frame(height: 40)
 
-                    // Title
+                    //title
                     ZStack {
                         RoundedRectangle(cornerRadius: 25)
                             .fill(.ultraThinMaterial)
@@ -61,7 +61,7 @@ struct SettingsView: View {
 
                     Spacer()
 
-                    // Player Name Input Section
+                    //input player name
                     VStack(alignment: .leading, spacing: 12) {
 
                         ZStack {
@@ -82,7 +82,7 @@ struct SettingsView: View {
                     .padding(.top, 30)
 
 
-                    // Difficulty Selector
+                    //choose difficulty of game
                     VStack(spacing: 20) {
                         HStack(spacing: 20) {
                             ForEach(difficulties, id: \.self) { level in
@@ -99,7 +99,7 @@ struct SettingsView: View {
                     Spacer()
     
 
-                    // Start Game Button
+                    //start game button. will pass the users name and difficulty level to the gameView.
                     NavigationLink(destination: GameView(
                         difficulty: difficulty,
                         playerName: playerName.isEmpty ? "Player" : playerName,
@@ -124,7 +124,7 @@ struct SettingsView: View {
                         .padding(.bottom, 30)
                     }
                     .padding(.horizontal, 45)
-                    .disabled(playerName.isEmpty) // optional: disable until name is entered
+                    .disabled(playerName.isEmpty) //optional: disable until name is entered
                     .navigationBarHidden(true)
                     .navigationBarBackButtonHidden(true)
                 }
@@ -133,6 +133,7 @@ struct SettingsView: View {
         
     }
     
+    //function to handle logic behind deciding difficulty of game
     @ViewBuilder
     private func difficultyButton(for level: String) -> some View {
         Button(action: {

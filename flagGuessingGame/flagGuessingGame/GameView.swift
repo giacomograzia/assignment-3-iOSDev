@@ -5,7 +5,12 @@
 
 import SwiftUI
 
+/*
+ The code for the game. Users have 3 lives and 10 seconds to guess a flag. If time runs out or the user runs out of lives, a game over overlay will be displayed and the user will be navigated to the leaderboard.
+ */
+
 struct GameView: View {
+    //passed from settingsView
     let difficulty: String
     let playerName: String
     let startingLives: Int
@@ -27,7 +32,6 @@ struct GameView: View {
     @State private var isGameOver = false
     @State private var showGameOverOverlay = false
 
-    // Timer State
     @State private var timeRemaining: Int = 10
     @State private var timerColor: Color = .white
     @State private var timer: Timer?
@@ -51,6 +55,7 @@ struct GameView: View {
 
     var body: some View {
         ZStack {
+            //game background
             Image("Background")
                 .resizable()
                 .scaledToFill()
@@ -63,6 +68,7 @@ struct GameView: View {
                 VStack {
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
+                            //code for top bar - name, timer, score, best high score, lives
                             Text(playerName)
                                 .font(.subheadline)
                                 .fontWeight(.semibold)
@@ -196,6 +202,8 @@ struct GameView: View {
                 Spacer()
             }
 
+            //code for handling the game ending
+            
             if showTimeoutMessage {
                 VStack {
                     Text("⏰ Time's up!")
@@ -242,6 +250,7 @@ struct GameView: View {
         }
     }
 
+    //function to show a new round - new flag and options
     private func loadNewRound() {
         isOptionDisabled = false
         countries = CountryDataManager.loadCountries()
@@ -264,6 +273,7 @@ struct GameView: View {
         startTimer()
     }
 
+    //handle when a country option is chose
     private func countryTapped(_ selected: Country) {
         guard let correct = correctCountry else { return }
 
@@ -297,6 +307,7 @@ struct GameView: View {
         }
     }
 
+    //handles the timer running out
     private func handleTimeout() {
         selectedCountryName = correctCountry?.countryName ?? ""
         showCountryName = true
@@ -330,6 +341,7 @@ struct GameView: View {
         }
     }
 
+    //starts the timer
     private func startTimer() {
         timer?.invalidate()
         timeRemaining = 10
@@ -348,6 +360,7 @@ struct GameView: View {
         }
     }
 
+    //saves users score when they finish the game/ die
     private func saveScoreToLeaderboard() {
         if currentScore > bestScore {
             bestScore = currentScore
@@ -357,6 +370,7 @@ struct GameView: View {
         }
     }
 
+    //loads previous player scores
     func loadLeaderboard() -> [PlayerScore] {
         guard let data = UserDefaults.standard.data(forKey: "PlayerScores") else {
             return []
@@ -368,12 +382,14 @@ struct GameView: View {
         return []
     }
 
+    //update and save leaderboard
     func saveLeaderboard(_ scores: [PlayerScore]) {
         if let data = try? JSONEncoder().encode(scores) {
             UserDefaults.standard.set(data, forKey: "PlayerScores")
         }
     }
 
+    //resets game for when user wants to play again
     private func resetGame() {
         livesRemaining = startingLives
         currentScore = 0
@@ -384,6 +400,7 @@ struct GameView: View {
         loadNewRound()
     }
 
+    //gets the highest score in leaderboard
     private func loadBestScore() {
         let scores = loadLeaderboard()
         bestScore = scores.map(\ .score).max() ?? 0

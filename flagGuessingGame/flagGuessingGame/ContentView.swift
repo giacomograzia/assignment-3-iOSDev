@@ -8,24 +8,28 @@
 import SwiftUI
 import SwiftData
 
+/*
+ Root view for the game - what users will see when they first begin
+ */
+
 struct ContentView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                // Background image
+                //background image
                 Image("Background")
                     .resizable()
                     .scaledToFill()
                     .ignoresSafeArea()
                 
-                // Color overlay for better contrast
+                //colour overlay for better contrast
                 Color.black.opacity(0.1)
                     .ignoresSafeArea()
                 
                 VStack(spacing: 40) {
                     Spacer()
                     
-                    // Title
+                    //title
                     ZStack {
                         RoundedRectangle(cornerRadius: 25)
                             .fill(.ultraThinMaterial)
@@ -44,7 +48,7 @@ struct ContentView: View {
 
                     Spacer()
                     
-                    // Play button
+                    //play button to begin game
                     NavigationLink(destination: SettingsView()) {
                         ZStack {
                             Circle()
