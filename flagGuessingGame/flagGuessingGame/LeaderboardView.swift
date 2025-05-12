@@ -5,10 +5,6 @@
 
 import SwiftUI
 
-/*
- Shows the name and scores of previous players. Allows user to play again.
- */
-
 struct LeaderboardView: View {
 
     @Environment(\.dismiss) private var dismiss
@@ -28,7 +24,6 @@ struct LeaderboardView: View {
             }
             .onAppear {
                 loadPlayerScores()
-                savePlayerScores()
             }
             .navigationBarHidden(true)
             .navigationDestination(isPresented: $navigateToSettings) {
@@ -91,42 +86,44 @@ struct LeaderboardView: View {
     private var leaderboardView: some View {
         let sortedScores = playerScores.sorted(by: { $0.score > $1.score })
 
-        return ZStack(alignment: .top) {
-            RoundedRectangle(cornerRadius: 25)
-                .fill(.ultraThinMaterial)
+        return ZStack {
+            RoundedRectangle(cornerRadius: 20)
+                .fill(LinearGradient(
+                    colors: [Color("customBlue").opacity(0.99), Color("customGreen").opacity(0.98)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing))
+                .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
                 .padding(.horizontal, 20)
-                .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
 
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 12) {
                 Text("Top Players")
-                    .font(.title3)
+                    .font(.title2)
                     .fontWeight(.bold)
-                    .foregroundColor(Color("customBlue"))
+                    .foregroundColor(.white)
                     .frame(maxWidth: .infinity, alignment: .center)
 
-                List {
+                ScrollView {
                     ForEach(0..<sortedScores.count, id: \.self) { index in
                         let playerScore = sortedScores[index]
                         HStack {
                             Text("\(leaderboardEmoji(for: index)) \(playerScore.playerName)")
                                 .font(.headline)
-                                .foregroundColor(Color("customBlue"))
+                                .foregroundColor(.white)
                             Spacer()
                             Text("\(playerScore.score)")
                                 .font(.headline)
-                                .foregroundColor(Color("customGreen"))
+                                .foregroundColor(Color(.white))
                         }
+                        .padding()
+                        .background(Color.black.opacity(0.15))
+                        .cornerRadius(12)
                     }
-                    .onDelete(perform: deletePlayerScore)
                 }
-                .frame(height: 250)
-                .listStyle(PlainListStyle())
+                .padding(.horizontal)
             }
-            .padding(.top, 20)
-            .padding(.bottom, 20)
-            .padding(.horizontal)
+            .padding(20)
         }
-        .frame(maxWidth: 400)
+        .frame(maxWidth: 380)
     }
 
     private var playAgainButton: some View {
@@ -138,8 +135,7 @@ struct LeaderboardView: View {
                     .fill(LinearGradient(
                         gradient: Gradient(colors: [Color("customGreen"), Color("customBlue")]),
                         startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ))
+                        endPoint: .bottomTrailing))
                     .frame(height: 60)
                     .shadow(color: .black.opacity(0.25), radius: 8, x: 0, y: 4)
 
@@ -154,8 +150,7 @@ struct LeaderboardView: View {
 
     private func loadPlayerScores() {
         guard let data = UserDefaults.standard.data(forKey: "PlayerScores"),
-              let decoded = try? JSONDecoder().decode([PlayerScore].self, from: data)
-        else {
+              let decoded = try? JSONDecoder().decode([PlayerScore].self, from: data) else {
             playerScores = []
             return
         }
@@ -193,5 +188,6 @@ struct LeaderboardView: View {
 }
 
 #Preview {
-    LeaderboardView(playerName: "Diva", score: 20)
+    LeaderboardView(playerName: "Luca", score: 20)
 }
+

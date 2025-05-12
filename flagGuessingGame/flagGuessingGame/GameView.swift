@@ -32,16 +32,19 @@ struct GameView: View {
     @State private var isGameOver = false
     @State private var showGameOverOverlay = false
 
-    @State private var timeRemaining: Int = 10
+    @State private var timeRemaining: Int = 30
     @State private var timerColor: Color = .white
     @State private var timer: Timer?
     @State private var showTimeoutMessage: Bool = false
 
-    init(difficulty: String, playerName: String, startingLives: Int) {
+    @State private var usedCountries: Set<String> = []
+    @State private var didSaveScore = false
+
+    init(difficulty: String, playerName: String, startingLives: Int = 3) {
         self.difficulty = difficulty
         self.playerName = playerName
-        self.startingLives = startingLives
-        self._livesRemaining = State(initialValue: startingLives)
+        self.startingLives = 3  // Fixed to always start with 3 lives
+        self._livesRemaining = State(initialValue: 3)  // Ensure livesRemaining also starts with 3
     }
 
     var numberOfOptions: Int {
@@ -96,9 +99,15 @@ struct GameView: View {
                         .frame(maxWidth: .infinity)
 
                         HStack(spacing: 4) {
-                            ForEach(Array(0..<startingLives), id: \ .self) { index in
-                                Image(systemName: index < livesRemaining ? "heart.fill" : "heart")
-                                    .foregroundColor(index < livesRemaining ? .red : .gray)
+                            ForEach(Array(0..<startingLives), id: \.self) {
+                                index in
+                                Image(
+                                    systemName: index < livesRemaining
+                                        ? "heart.fill" : "heart"
+                                )
+                                .foregroundColor(
+                                    index < livesRemaining ? .red : .gray
+                                )
                             }
                         }
                         .frame(maxWidth: .infinity, alignment: .trailing)
@@ -128,11 +137,15 @@ struct GameView: View {
                                     .lineLimit(2)
                                     .minimumScaleFactor(0.6)
                                     .frame(maxWidth: 250)
-                                    .fixedSize(horizontal: false, vertical: true)
+                                    .fixedSize(
+                                        horizontal: false,
+                                        vertical: true
+                                    )
                                     .transition(.opacity)
                                     .padding(.horizontal, 10)
                             } else {
-                                Text(String(repeating: "█", count: max(6, correctCountry.countryName.count)))
+                                // Fixed-length fog for consistency
+                                Text("██████████")
                                     .font(.title2)
                                     .fontWeight(.bold)
                                     .foregroundColor(.white.opacity(0.3))
@@ -141,12 +154,18 @@ struct GameView: View {
                                     .lineLimit(2)
                                     .minimumScaleFactor(0.6)
                                     .frame(maxWidth: 250)
-                                    .fixedSize(horizontal: false, vertical: true)
+                                    .fixedSize(
+                                        horizontal: false,
+                                        vertical: true
+                                    )
                                     .transition(.opacity)
                                     .padding(.horizontal, 10)
                             }
                         }
-                        .animation(.easeInOut(duration: 0.3), value: showCountryName)
+                        .animation(
+                            .easeInOut(duration: 0.3),
+                            value: showCountryName
+                        )
 
                         Text("\(correctCountry.normalizedScore) points")
                             .font(.subheadline)
@@ -163,7 +182,10 @@ struct GameView: View {
                 Spacer()
 
                 VStack(spacing: 20) {
-                    let columns: [GridItem] = Array(repeating: GridItem(.flexible(), spacing: 20), count: 2)
+                    let columns: [GridItem] = Array(
+                        repeating: GridItem(.flexible(), spacing: 20),
+                        count: 2
+                    )
 
                     LazyVGrid(columns: columns, spacing: 20) {
                         ForEach(options, id: \.id) { country in
@@ -184,14 +206,22 @@ struct GameView: View {
                                     .frame(height: 100)
                                     .background(
                                         LinearGradient(
-                                            gradient: Gradient(colors: [Color("customGreen"), Color("customBlue")]),
+                                            gradient: Gradient(colors: [
+                                                Color("customGreen"),
+                                                Color("customBlue"),
+                                            ]),
                                             startPoint: .topLeading,
                                             endPoint: .bottomTrailing
                                         )
                                     )
                                     .foregroundColor(.white)
                                     .cornerRadius(15)
-                                    .shadow(color: .black.opacity(0.25), radius: 5, x: 0, y: 3)
+                                    .shadow(
+                                        color: .black.opacity(0.25),
+                                        radius: 5,
+                                        x: 0,
+                                        y: 3
+                                    )
                             }
                             .disabled(isOptionDisabled)
                         }
@@ -203,28 +233,20 @@ struct GameView: View {
             }
 
             //code for handling the game ending
-            
-            if showTimeoutMessage {
-                VStack {
-                    Text("⏰ Time's up!")
-                        .font(.title)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                        .padding()
-                        .background(Color.red.opacity(0.8))
-                        .cornerRadius(12)
-                        .shadow(radius: 10)
-                }
-                .transition(.opacity)
-                .zIndex(1000)
-            }
 
             if showGameOverOverlay {
                 ZStack {
-                    Color.black.opacity(0.7)
+                    Color.black.opacity(0.85)
                         .ignoresSafeArea()
 
                     VStack(spacing: 20) {
+                        if showTimeoutMessage {
+                            Text("⏰ Time's up!")
+                                .font(.title)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                        }
+
                         Text("Game Over")
                             .font(.system(size: 48, weight: .bold))
                             .foregroundColor(.white)
@@ -241,26 +263,74 @@ struct GameView: View {
         }
         .navigationBarBackButtonHidden(true)
         .navigationBarHidden(true)
-        .fullScreenCover(isPresented: $isGameOver, onDismiss: resetGame) {
+        .fullScreenCover(isPresented: $isGameOver) {
             LeaderboardView(playerName: playerName, score: currentScore)
+                .interactiveDismissDisabled(true)  // Prevent closing with Escape
+                .onDisappear {
+                    // Trigger game reinitialization when returning from the leaderboard
+                    livesRemaining = startingLives
+                    currentScore = 0
+                    totalScorePossible = 0
+                    showCountryName = false
+                    isOptionDisabled = false
+                    showGameOverOverlay = false
+                    usedCountries.removeAll()
+                    loadBestScore()
+                    loadNewRound()
+                    startTimer()
+                }
         }
         .onAppear {
+            livesRemaining = startingLives
+            currentScore = 0
+            totalScorePossible = 0
+            showCountryName = false
+            isOptionDisabled = false
+            showGameOverOverlay = false
+            usedCountries.removeAll()  // Reset the used countries set
+
+            // Load best score from storage
             loadBestScore()
+
+            // Load countries once
+            countries = CountryDataManager.loadCountries()
+
             loadNewRound()
+            startTimer()  // Start the timer only once when the game view appears
+            // UserDefaults.standard.removeObject(forKey: "PlayerScores")
+            didSaveScore = false
+
         }
+
     }
 
-    //function to show a new round - new flag and options
+    // Load a new round and ensure the timer is running
     private func loadNewRound() {
         isOptionDisabled = false
-        countries = CountryDataManager.loadCountries()
 
-        guard countries.count >= numberOfOptions else { return }
+        // Reset the used countries set if all countries have been used
+        if usedCountries.count == countries.count {
+            usedCountries.removeAll()
+        }
 
-        correctCountry = countries.randomElement()
+        // Filter out the already used countries
+        let availableCountries = countries.filter {
+            !usedCountries.contains($0.countryName)
+        }
+
+        // Ensure we have enough countries to choose from
+        guard !availableCountries.isEmpty else { return }
+
+        // Select a new correct country from the available (unused) countries
+        correctCountry = availableCountries.randomElement()
 
         if let correctCountry = correctCountry {
-            var wrongOptions = countries.filter { $0.countryName != correctCountry.countryName }
+            // Mark the chosen country as used
+            usedCountries.insert(correctCountry.countryName)
+
+            var wrongOptions = countries.filter {
+                $0.countryName != correctCountry.countryName
+            }
             wrongOptions.shuffle()
             wrongOptions = Array(wrongOptions.prefix(numberOfOptions - 1))
 
@@ -273,7 +343,7 @@ struct GameView: View {
         startTimer()
     }
 
-    //handle when a country option is chose
+    // Handle when a country option is chosen
     private func countryTapped(_ selected: Country) {
         guard let correct = correctCountry else { return }
 
@@ -288,27 +358,62 @@ struct GameView: View {
             livesRemaining -= 1
         }
 
-        if livesRemaining <= 0 {
-            saveScoreToLeaderboard()
-            withAnimation {
-                showGameOverOverlay = true
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-                withAnimation {
-                    showGameOverOverlay = false
-                }
-                isGameOver = true
-            }
+        // Check if the game is over (either by lives or timeout)
+        if livesRemaining <= 0 || timeRemaining <= 0 {
+            handleGameOver()
         } else {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            // Delay before loading a new round, but do not invalidate the timer
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
                 showCountryName = false
                 loadNewRound()
             }
         }
     }
 
-    //handles the timer running out
+    // Starts the timer, or restarts it if needed
+    private func startTimer() {
+        // Invalidate any existing timer before starting a new one
+        timer?.invalidate()
+        timer = nil
+
+        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) {
+            _ in
+            if timeRemaining > 0 {
+                timeRemaining -= 1
+                if timeRemaining <= 3 {
+                    timerColor = .red
+                }
+            } else {
+                handleTimeout()
+            }
+        }
+    }
+
+    // Unified Game Over Handler
+    private func handleGameOver() {
+        if isGameOver { return }  // still prevents re-entry
+        isGameOver = true
+        timer?.invalidate()
+        timer = nil
+
+        // Save only once per game
+        if !didSaveScore {
+            saveScoreToLeaderboard()
+            didSaveScore = true
+        }
+
+        withAnimation { showGameOverOverlay = true }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+            withAnimation { showGameOverOverlay = false }
+            isGameOver = true  // keeps the full-screen cover up
+        }
+    }
+
+    // Handles the timer running out
     private func handleTimeout() {
+        timer?.invalidate()
+        timer = nil
+
         selectedCountryName = correctCountry?.countryName ?? ""
         showCountryName = true
         feedbackColor = .red
@@ -316,63 +421,40 @@ struct GameView: View {
         withAnimation {
             showTimeoutMessage = true
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
-            withAnimation {
-                showTimeoutMessage = false
-            }
+        // Trigger game over when lives run out or time is up
+        if livesRemaining <= 0 || timeRemaining <= 0 {
+            handleGameOver()
         }
 
-        if livesRemaining <= 0 {
-            saveScoreToLeaderboard()
-            withAnimation {
-                showGameOverOverlay = true
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-                withAnimation {
-                    showGameOverOverlay = false
-                }
-                isGameOver = true
-            }
-        } else {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                showCountryName = false
-                loadNewRound()
-            }
-        }
-    }
-
-    //starts the timer
-    private func startTimer() {
-        timer?.invalidate()
-        timeRemaining = 10
-        timerColor = .white
-
-        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
-            if timeRemaining > 0 {
-                timeRemaining -= 1
-                if timeRemaining <= 3 {
-                    timerColor = .red
-                }
-            } else {
-                timer?.invalidate()
-                handleTimeout()
-            }
-        }
     }
 
     //saves users score when they finish the game/ die
     private func saveScoreToLeaderboard() {
-        if currentScore > bestScore {
-            bestScore = currentScore
-            var savedScores = loadLeaderboard()
-            savedScores.append(PlayerScore(playerName: playerName, score: currentScore))
-            saveLeaderboard(savedScores)
+        var savedScores = loadLeaderboard()
+        let newScore = PlayerScore(playerName: playerName, score: currentScore)
+
+        // Check if the score already exists for this player
+        if let index = savedScores.firstIndex(where: {
+            $0.playerName == playerName
+        }) {
+            // Update the score only if it's higher
+            if currentScore > savedScores[index].score {
+                savedScores[index].score = currentScore
+            }
+        } else {
+            // Add a new score if it doesn't exist
+            savedScores.append(newScore)
         }
+
+        // Sort scores in descending order
+        savedScores.sort { $0.score > $1.score }
+        saveLeaderboard(savedScores)
     }
 
     //loads previous player scores
     func loadLeaderboard() -> [PlayerScore] {
-        guard let data = UserDefaults.standard.data(forKey: "PlayerScores") else {
+        guard let data = UserDefaults.standard.data(forKey: "PlayerScores")
+        else {
             return []
         }
         let decoder = JSONDecoder()
@@ -397,13 +479,14 @@ struct GameView: View {
         showCountryName = false
         isOptionDisabled = false
         showGameOverOverlay = false
+        isGameOver = false  // Reset the game over state
         loadNewRound()
     }
 
     //gets the highest score in leaderboard
     private func loadBestScore() {
         let scores = loadLeaderboard()
-        bestScore = scores.map(\ .score).max() ?? 0
+        bestScore = scores.map(\.score).max() ?? 0
     }
 }
 
