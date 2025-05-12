@@ -53,6 +53,21 @@ Master the map, climb the leaderboard, and see how many rare flags you can ident
 
 <p align="center"><em><b>Figure 1</b>: Main app views</em></p>
 
+## Future Improvements 🚀
+
+This app is just an MVP, but we have brainstormed ways to enhance and expand it in the future. We're considering:
+
+- **Custom Game Duration**: Add a slider to choose the game time, allowing for shorter or longer rounds. ⏳  
+- **Improved Leaderboard**: Introduce more features such as filtering by difficulty, viewing historical high scores, and tracking personal bests. 🏆  
+- **Sound Effects and Music**: Add sound cues for correct and incorrect answers, as well as background music that matches the game’s pace. 🎵  
+- **Enhanced Visuals**: Implement smooth animations when selecting the correct flag or losing a life to make gameplay more dynamic and visually appealing. ✨  
+- **Detailed Statistics**: Track gameplay metrics such as the most frequently mistaken flags, average answer time, and performance by point value. 📊  
+- **Adaptive Scoring Algorithm**: Adjust flag scores dynamically based on how often players mistake them, making the game more balanced over time. 🤔  
+- **Reverse Mode**: Flip the challenge by giving the country name and asking players to choose the correct flag. 🔄  
+
+These improvements aim to make the game more customizable, engaging, and visually dynamic, offering a richer experience for players of all levels. 🌟
+
+
 ## Repository
 <https://github.com/giacomograzia/assignment-3-iOSDev>
 
@@ -113,14 +128,6 @@ cd assignment-3-iOSDev
 ```
 open flagGuessingGame/flagGuessingGame.xcworkspace
 ```
-
-## App Views
-![Simulator Screenshot - iPhone 16 Pro - 2025-05-12 at 17 54 02](https://github.com/user-attachments/assets/98dbd961-1b5d-4825-b577-04fd1f3dc53e)
-![image](https://github.com/user-attachments/assets/31d9a768-fbc7-4bd8-919f-8196e5daac7e)
-![image](https://github.com/user-attachments/assets/ae20592f-58cd-4b09-a962-1d03efbfe707)
-![image](https://github.com/user-attachments/assets/3f583a45-37c3-4570-80b4-d7a0ca0e2525)
-
-
 
 
 
